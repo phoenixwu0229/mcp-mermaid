@@ -10,6 +10,7 @@ import argparse
 import json
 from typing import Any, Dict
 
+from .core.logger import logger
 from .tools.mermaid_tools import MermaidTools
 
 
@@ -37,7 +38,7 @@ class MCPMermaidServer:
             if method == "initialize":
                 # 初始化响应 - 按照MCP最新规范
                 client_info = params.get("clientInfo", {})
-                print(f"📞 客户端连接: {client_info.get('name', 'Unknown')} v{client_info.get('version', 'Unknown')}", file=sys.stderr)
+                logger.info("📞 客户端连接: %s v%s", client_info.get('name', 'Unknown'), client_info.get('version', 'Unknown'))
                 
                 return {
                     "jsonrpc": "2.0",
@@ -58,7 +59,7 @@ class MCPMermaidServer:
 
             elif method == "notifications/initialized":
                 # 初始化完成通知
-                print("✅ MCP协议初始化完成", file=sys.stderr)
+                logger.info("✅ MCP协议初始化完成")
                 return None  # 通知消息不需要响应
 
             elif method == "tools/list":
@@ -74,7 +75,7 @@ class MCPMermaidServer:
                 tool_name = params.get("name")
                 arguments = params.get("arguments", {})
 
-                print(f"🔧 调用工具: {tool_name}", file=sys.stderr)
+                logger.info("🔧 调用工具: %s", tool_name)
 
                 result = self.tools.call_tool(tool_name, arguments)
 
@@ -104,7 +105,7 @@ class MCPMermaidServer:
                 }
 
         except Exception as e:
-            print(f"❌ 请求处理错误: {e}", file=sys.stderr)
+            logger.error("❌ 请求处理错误: %s", e)
         return {
             "jsonrpc": "2.0",
             "id": request_id,
@@ -113,7 +114,7 @@ class MCPMermaidServer:
 
     async def run(self):
         """运行MCP服务器"""
-        print("🚀 MCP-Mermaid服务器已启动，等待连接...", file=sys.stderr)
+        logger.info("🚀 MCP-Mermaid服务器已启动，等待连接...")
         
         while True:
             try:
@@ -129,7 +130,7 @@ class MCPMermaidServer:
                 
                 # 记录请求（仅调试模式）
                 if request.get("method") not in ["ping"]:
-                    print(f"📨 收到请求: {request.get('method')}", file=sys.stderr)
+                    logger.info("📨 收到请求: %s", request.get('method'))
 
                     # 处理请求
                     response = await self.handle_request(request)
@@ -141,10 +142,10 @@ class MCPMermaidServer:
                     sys.stdout.flush()
 
             except KeyboardInterrupt:
-                print("🛑 收到中断信号，正在关闭服务器...", file=sys.stderr)
+                logger.info("🛑 收到中断信号，正在关闭服务器...")
                 break
             except json.JSONDecodeError as e:
-                print(f"❌ JSON解析错误: {e}", file=sys.stderr)
+                logger.error("❌ JSON解析错误: %s", e)
                 # 发送错误响应
                 error_response = {
                     "jsonrpc": "2.0",
@@ -155,11 +156,11 @@ class MCPMermaidServer:
                 sys.stdout.write(response_str)
                 sys.stdout.flush()
             except Exception as e:
-                print(f"❌ 服务器错误: {e}", file=sys.stderr)
+                logger.error("❌ 服务器错误: %s", e)
                 break
 
                 # 清理资源
-                print("🧹 清理资源...", file=sys.stderr)
+                logger.info("🧹 清理资源...")
                 self.tools.cleanup()
 
 
@@ -192,15 +193,15 @@ def main_sync():
         
         if args.help_tools:
             tools = MermaidTools()
-            print("🛠️ 可用工具:")
+            logger.info("🛠️ 可用工具:")
             for tool in tools.get_tools():
-                print(f"  - {tool['name']}: {tool['description']}")
+                logger.info("  - %s: %s", tool['name'], tool['description'])
             tools.cleanup()
             return
     else:
         # 没有参数时启动MCP服务器
-        print("🚀 启动MCP Mermaid服务器...", file=sys.stderr)
-        print("💡 使用 --help 查看可用选项", file=sys.stderr)
+        logger.info("🚀 启动MCP Mermaid服务器...")
+        logger.info("💡 使用 --help 查看可用选项")
         asyncio.run(main())
 
 
