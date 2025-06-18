@@ -1,0 +1,132 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mcp-mermaid"
+version = "1.0.0"
+description = "智能Mermaid图表生成工具，支持布局优化、主题系统和高质量输出的MCP服务器"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "MCP-Mermaid Team", email = "dev@mcp-mermaid.com"}
+]
+maintainers = [
+    {name = "MCP-Mermaid Team", email = "dev@mcp-mermaid.com"}
+]
+keywords = ["mcp", "mermaid", "diagram", "visualization", "charts", "model-context-protocol"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Visualization",
+    "Topic :: Text Processing :: Markup",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "requests>=2.25.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0",
+    "pytest-asyncio>=0.18.0",
+    "black>=21.0",
+    "flake8>=3.8.0",
+    "mypy>=0.800",
+    "build>=0.8.0",
+    "twine>=4.0.0",
+]
+test = [
+    "pytest>=6.0",
+    "pytest-asyncio>=0.18.0",
+    "pytest-cov>=2.0",
+]
+docker = [
+    "gunicorn>=20.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/mcp-mermaid/mcp-mermaid"
+Documentation = "https://github.com/mcp-mermaid/mcp-mermaid/blob/main/README.md"
+Repository = "https://github.com/mcp-mermaid/mcp-mermaid.git"
+"Bug Reports" = "https://github.com/mcp-mermaid/mcp-mermaid/issues"
+Changelog = "https://github.com/mcp-mermaid/mcp-mermaid/blob/main/CHANGELOG.md"
+
+[project.scripts]
+mcp-mermaid = "mcp_mermaid.server:main_sync"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["mcp_mermaid*"]
+
+[tool.setuptools.package-data]
+mcp_mermaid = ["*.json", "*.md"]
+
+# 测试配置
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+pythonpath = ["src"]
+addopts = [
+    "--verbose",
+    "--tb=short",
+    "--strict-markers",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+]
+
+# 代码格式化配置
+[tool.black]
+line-length = 88
+target-version = ['py38']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+# 类型检查配置
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false 
