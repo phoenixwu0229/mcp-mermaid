@@ -20,7 +20,7 @@ class MermaidTools:
         return [
             {
                 "name": "generate_diagram",
-                "description": "生成Mermaid图表，支持智能布局优化、主题配置和高质量输出",
+                "description": "生成Mermaid图表，支持智能布局优化、主题配置和高质量输出。内置布局优化和主题选择功能，一个工具完成所有图表生成需求。",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -30,24 +30,24 @@ class MermaidTools:
                         },
                         "theme": {
                             "type": "string",
-                            "description": "主题名称",
+                            "description": "主题名称。可选：compact(紧凑), professional(专业), minimal(极简), dark-pro(深色), default(默认)",
                             "enum": list(ThemeManager.get_available_themes()),
                             "default": "default",
                         },
                         "optimize_layout": {
                             "type": "boolean",
-                            "description": "是否启用智能布局优化",
+                            "description": "是否启用智能布局优化，自动优化图表布局和方向",
                             "default": True,
                         },
                         "quality": {
                             "type": "string",
-                            "description": "输出图片质量",
+                            "description": "输出图片质量：low(低质量,快速), medium(中等质量), high(高质量,推荐)",
                             "enum": ["low", "medium", "high"],
                             "default": "high",
                         },
                         "upload_image": {
                             "type": "boolean",
-                            "description": "是否上传图片到云端并返回URL",
+                            "description": "是否上传图片到云端并返回URL，便于分享和使用",
                             "default": True,
                         },
                         "title": {
@@ -55,28 +55,10 @@ class MermaidTools:
                             "description": "图表标题，用于文件命名和图片描述",
                             "default": "",
                         },
+
                     },
                     "required": ["content"],
                 },
-            },
-            {
-                "name": "optimize_layout",
-                "description": "仅对Mermaid图表进行布局优化，不生成图片",
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {
-                        "content": {
-                            "type": "string",
-                            "description": "要优化的Mermaid图表DSL内容",
-                        }
-                    },
-                    "required": ["content"],
-                },
-            },
-            {
-                "name": "get_theme_info",
-                "description": "获取所有可用主题的信息和描述",
-                "inputSchema": {"type": "object", "properties": {}, "required": []},
             },
         ]
 
@@ -84,10 +66,6 @@ class MermaidTools:
         """调用指定的工具"""
         if name == "generate_diagram":
             return self._generate_diagram(**arguments)
-        elif name == "optimize_layout":
-            return self._optimize_layout(**arguments)
-        elif name == "get_theme_info":
-            return self._get_theme_info()
         else:
             return {"success": False, "error": f"未知工具: {name}"}
 
@@ -129,6 +107,17 @@ class MermaidTools:
                     response["data"]["image_url"] = result["image_url"]
                     response["data"]["markdown_link"] = result["markdown_link"]
 
+                # 总是包含主题信息和优化详情
+                themes = ThemeManager.get_theme_info()
+                response["data"]["available_themes"] = themes
+                response["data"]["theme_count"] = len(themes)
+                
+                response["data"]["optimization_details"] = {
+                    "original_content": content,
+                    "was_optimized": result["optimized_content"] != content,
+                    "optimizer_stats": self.generator.get_optimizer_stats()
+                }
+
                 return response
             else:
                 return {
@@ -140,44 +129,7 @@ class MermaidTools:
         except Exception as e:
             return {"success": False, "error": f"生成过程异常: {str(e)}"}
 
-    def _optimize_layout(self, content: str) -> Dict[str, Any]:
-        """优化Mermaid图表布局"""
-        try:
-            optimized_content, optimization_reason = (
-                self.generator.optimizer.optimize_layout(content)
-            )
 
-            return {
-                "success": True,
-                "message": "布局优化完成",
-                "data": {
-                    "original_content": content,
-                    "optimized_content": optimized_content,
-                    "optimization_reason": optimization_reason,
-                    "was_optimized": optimized_content != content,
-                },
-            }
-
-        except Exception as e:
-            return {"success": False, "error": f"布局优化异常: {str(e)}"}
-
-    def _get_theme_info(self) -> Dict[str, Any]:
-        """获取主题信息"""
-        try:
-            themes = ThemeManager.get_theme_info()
-
-            return {
-                "success": True,
-                "message": "主题信息获取成功",
-                "data": {
-                    "available_themes": themes,
-                    "total_count": len(themes),
-                    "default_theme": "default",
-                },
-            }
-
-        except Exception as e:
-            return {"success": False, "error": f"获取主题信息异常: {str(e)}"}
 
     def get_stats(self) -> Dict[str, Any]:
         """获取工具使用统计"""

@@ -206,7 +206,7 @@ class MermaidGenerator:
             margin: 0;
             padding: 20px;
             background-color: {bg_color};
-            font-family: Arial, sans-serif;
+            font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", Arial, sans-serif;
         }}
         .mermaid {{
             display: flex;
