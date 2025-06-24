@@ -193,6 +193,8 @@ class MermaidGenerator:
         mermaid_js_path = os.path.join(project_root, "js", "mermaid.min.js")
         mermaid_js_url = f"file://{os.path.abspath(mermaid_js_path)}"
         
+
+        
         html_template = f"""
 <!DOCTYPE html>
 <html lang="en">
@@ -206,13 +208,27 @@ class MermaidGenerator:
             margin: 0;
             padding: 20px;
             background-color: {bg_color};
-            font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", Arial, sans-serif;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Noto Color Emoji", sans-serif;
+            font-variant-emoji: emoji;
+            font-synthesis: none;
         }}
         .mermaid {{
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 400px;
+            font-family: inherit;
+        }}
+        .mermaid svg {{
+            font-family: inherit;
+        }}
+        .mermaid .nodeLabel {{
+            font-family: inherit;
+            font-variant-emoji: emoji;
+        }}
+        .mermaid text {{
+            font-family: inherit;
+            font-variant-emoji: emoji;
         }}
     </style>
 </head>
@@ -225,7 +241,11 @@ class MermaidGenerator:
         window.addEventListener('load', function() {{
             mermaid.initialize({{
                 startOnLoad: true,
-                {json.dumps(theme_config)[1:-1]}
+                {json.dumps(theme_config)[1:-1]},
+                fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Noto Color Emoji", sans-serif',
+                fontSize: 14,
+                wrap: true,
+                useMaxWidth: true
             }});
             
             // 添加渲染完成检测
@@ -254,7 +274,7 @@ class MermaidGenerator:
 
         # 创建临时HTML文件
         html_file = os.path.join(self.temp_dir, "diagram.html")
-        with open(html_file, "w", encoding="utf-8") as f:
+        with open(html_file, "w", encoding="utf-8", errors='replace') as f:
             f.write(html_template)
 
         return html_file

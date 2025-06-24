@@ -21,7 +21,11 @@ async function screenshot(htmlFile, outputFile, options = {}) {
             '--disable-extensions',
             '--disable-background-timer-throttling',
             '--disable-backgrounding-occluded-windows',
-            '--disable-renderer-backgrounding'
+            '--disable-renderer-backgrounding',
+            '--force-color-profile=srgb',
+            '--enable-font-antialiasing',
+            '--font-render-hinting=slight',
+            '--disable-font-subpixel-positioning=false'
         ]
     });
 
