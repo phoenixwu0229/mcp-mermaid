@@ -7,7 +7,7 @@ name = "mcp-mermaid"
 version = "1.0.0"
 description = "智能Mermaid图表生成工具，支持布局优化、主题系统和高质量输出的MCP服务器"
 readme = "README.md"
-license = "MIT"
+license = {text = "MIT"}
 authors = [
     {name = "MCP-Mermaid Team", email = "dev@mcp-mermaid.com"}
 ]
