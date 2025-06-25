@@ -108,8 +108,7 @@ class MCPMermaidServer:
                 "id": request_id,
                 "error": {
                     "code": -32603,
-                    "message": f"Internal error: {
-                        str(e)}",
+                    "message": f"Internal error: {str(e)}",
                 },
             }
 
