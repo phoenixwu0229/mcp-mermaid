@@ -108,8 +108,7 @@ class MCPMermaidServer:
                 "id": request_id,
                 "error": {
                     "code": -32603,
-                    "message": f"Internal error: {
-                        str(e)}",
+                    "message": f"Internal error: {str(e)}",
                 },
             }
 
@@ -181,22 +180,24 @@ def main_sync() -> None:
     )
     parser.add_argument("--help-tools", action="store_true", help="显示可用工具列表")
 
-    # 如果没有参数，或者参数只是帮助相关，则解析参数
-    if len(sys.argv) > 1:
-        args = parser.parse_args()
-
-        if args.help_tools:
-            tools = MermaidTools()
-            logger.info("🛠️ 可用工具:")
-            for tool in tools.get_tools():
-                logger.info("  - %s: %s", tool["name"], tool["description"])
-            tools.cleanup()
-            return
-    else:
+    # 如果没有参数，直接启动MCP服务器
+    if len(sys.argv) == 1:
         # 没有参数时启动MCP服务器
         logger.info("🚀 启动MCP Mermaid服务器...")
         logger.info("💡 使用 --help 查看可用选项")
         asyncio.run(main())
+        return
+
+    # 有参数时解析参数
+    args = parser.parse_args()
+
+    if args.help_tools:
+        tools = MermaidTools()
+        logger.info("🛠️ 可用工具:")
+        for tool in tools.get_tools():
+            logger.info("  - %s: %s", tool["name"], tool["description"])
+        tools.cleanup()
+        return
 
 
 if __name__ == "__main__":

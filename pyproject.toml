@@ -6,8 +6,8 @@ build-backend = "setuptools.build_meta"
 name = "mcp-mermaid"
 description = "MCP Server for generating Mermaid diagrams with built-in features"
 readme = "README.md"
-requires-python = ">=3.8"
-license = "MIT"
+requires-python = ">=3.10"
+license = {text = "MIT"}
 authors = [
     {name = "Your Name", email = "your.email@example.com"}
 ]
@@ -16,15 +16,13 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
 dynamic = ["version"]
 dependencies = [
-    "httpx",
+    "requests>=2.25.0",
     "mcp",
     "Pillow",
 ]
@@ -50,7 +48,7 @@ test = [
 "Source" = "https://github.com/your-username/mcp-mermaid"
 
 [project.scripts]
-mcp-mermaid = "mcp_mermaid.server:main"
+mcp-mermaid = "mcp_mermaid.server:main_sync"
 
 [tool.setuptools_scm]
 # Git tags 和 commits 自动版本
@@ -65,14 +63,14 @@ include = ["mcp_mermaid*"]
 
 [tool.black]
 line-length = 88
-target-version = ['py38']
+target-version = ['py310']
 
 [tool.isort]
 profile = "black"
 src_paths = ["src", "tests"]
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.10"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true

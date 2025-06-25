@@ -1,6 +1,9 @@
 # 二文档开发模式文件
 env/
 
+# setuptools-scm生成的版本文件
+src/mcp_mermaid/_version.py
+
 # Python构建产物
 __pycache__/
 *.py[cod]
