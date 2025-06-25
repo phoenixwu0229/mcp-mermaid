@@ -4,10 +4,12 @@
 负责将生成的图片上传到ImageBB并返回URL
 """
 
-import requests
 import base64
 from pathlib import Path
-from typing import Optional
+from typing import Any, Dict, Optional
+
+import requests
+
 from .logger import logger
 
 
@@ -37,7 +39,8 @@ class ImageUploader:
 
             # 读取并编码图片
             with open(image_path, "rb") as image_file:
-                image_data = base64.b64encode(image_file.read()).decode("utf-8")
+                image_data = base64.b64encode(
+                    image_file.read()).decode("utf-8")
 
             # 准备上传参数
             upload_data = {
@@ -50,20 +53,25 @@ class ImageUploader:
 
             # 发送上传请求
             logger.info("正在上传到ImageBB...")
-            response = requests.post(self.upload_url, data=upload_data, timeout=30)
+            response = requests.post(
+                self.upload_url, data=upload_data, timeout=30)
 
             if response.status_code == 200:
-                result = response.json()
+                result: Dict[str, Any] = response.json()
                 if result.get("success"):
-                    image_url = result["data"]["url"]
+                    image_url: str = result["data"]["url"]
                     logger.info("✅ 上传成功: %s", image_url)
                     return image_url
                 else:
-                    error_msg = result.get('error', {}).get('message', '未知错误')
+                    error_msg = result.get("error", {}).get("message", "未知错误")
                     logger.error("❌ 上传失败: %s", error_msg)
                     return None
             else:
-                logger.error("❌ 上传请求失败: HTTP %d - %s", response.status_code, response.text[:200])
+                logger.error(
+                    "❌ 上传请求失败: HTTP %d - %s",
+                    response.status_code,
+                    response.text[:200],
+                )
                 return None
 
         except requests.RequestException as e:
@@ -112,7 +120,8 @@ class ImageUploader:
             test_data = base64.b64encode(b"test").decode("utf-8")
             test_payload = {"key": self.api_key, "image": test_data}
 
-            response = requests.post(self.upload_url, data=test_payload, timeout=10)
+            response = requests.post(
+                self.upload_url, data=test_payload, timeout=10)
             result = response.json()
 
             # 即使上传失败，只要不是API密钥错误就说明密钥有效

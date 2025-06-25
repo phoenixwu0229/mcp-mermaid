@@ -4,9 +4,10 @@
 包含图表生成、主题应用、质量设置、布局优化集成等功能测试
 """
 
-import pytest
 import os
 from unittest.mock import patch
+
+import pytest
 
 from mcp_mermaid.core.generator import MermaidGenerator
 from mcp_mermaid.themes.configs import ThemeManager
@@ -87,14 +88,16 @@ class TestMermaidGenerator:
             assert result["image_path"] == "/tmp/test.png"
             assert result["layout_optimization"] == "未启用布局优化"
 
-    def test_generate_diagram_with_optimization(self, generator, sample_content):
+    def test_generate_diagram_with_optimization(
+            self, generator, sample_content):
         """测试带布局优化的图表生成"""
         with patch.object(generator, "_generate_image") as mock_generate:
             mock_generate.return_value = "/tmp/test.png"
 
             result = generator.generate_diagram(
-                content=sample_content, optimize_layout=True, upload_image=False
-            )
+                content=sample_content,
+                optimize_layout=True,
+                upload_image=False)
 
             assert result["success"] is True
             assert result["layout_optimization"] != "未启用布局优化"
@@ -125,8 +128,9 @@ class TestMermaidGenerator:
             mock_generate.return_value = "/tmp/test.png"
 
             result = generator.generate_diagram(
-                content=sample_content, theme="invalid_theme", upload_image=False
-            )
+                content=sample_content,
+                theme="invalid_theme",
+                upload_image=False)
 
             assert result["success"] is True
             assert result["theme"] == "invalid_theme"  # 传入的主题会被记录
@@ -189,8 +193,9 @@ class TestMermaidGenerator:
 
             # 使用包含特殊字符的标题
             result = generator.generate_diagram(
-                content="graph TD\nA-->B", title="测试@#$%图表!", upload_image=False
-            )
+                content="graph TD\nA-->B",
+                title="测试@#$%图表!",
+                upload_image=False)
 
             assert result["success"] is True
             # 验证mock被调用
@@ -201,11 +206,13 @@ class TestMermaidGenerator:
         """测试后清理"""
         yield
         # 清理临时目录
-        if hasattr(generator, "temp_dir") and os.path.exists(generator.temp_dir):
+        if hasattr(
+                generator,
+                "temp_dir") and os.path.exists(
+                generator.temp_dir):
             import shutil
 
             try:
                 shutil.rmtree(generator.temp_dir)
             except Exception:
                 pass  # 忽略清理错误
- 

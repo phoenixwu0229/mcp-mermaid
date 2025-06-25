@@ -111,11 +111,39 @@ lint-strict:
 
 format:
 	@echo "✨ 代码格式化..."
+	@echo "🔧 使用 black 格式化代码..."
 	@if command -v black >/dev/null 2>&1; then \
 		python -m black src/ tests/; \
 	else \
 		echo "⚠️ black未安装，跳过代码格式化"; \
 	fi
+	@echo "🔧 使用 autopep8 修复 PEP8 问题..."
+	@if command -v autopep8 >/dev/null 2>&1; then \
+		python -m autopep8 --in-place --recursive --aggressive --aggressive src/ tests/; \
+	else \
+		echo "📥 安装 autopep8..."; \
+		pip install -i https://mirrors.aliyun.com/pypi/simple/ autopep8; \
+		python -m autopep8 --in-place --recursive --aggressive --aggressive src/ tests/; \
+	fi
+	@echo "🔧 使用 isort 整理导入..."
+	@if command -v isort >/dev/null 2>&1; then \
+		python -m isort src/ tests/ --profile black; \
+	else \
+		echo "📥 安装 isort..."; \
+		pip install -i https://mirrors.aliyun.com/pypi/simple/ isort; \
+		python -m isort src/ tests/ --profile black; \
+	fi
+	@echo "🗑️ 移除未使用的导入..."
+	@if command -v unimport >/dev/null 2>&1; then \
+		python -m unimport --remove src/ tests/; \
+	else \
+		echo "📥 安装 unimport..."; \
+		pip install -i https://mirrors.aliyun.com/pypi/simple/ unimport; \
+		python -m unimport --remove src/ tests/; \
+	fi
+	@echo "🧹 清理多余空白字符..."
+	@find src/ tests/ -name "*.py" -exec sed -i 's/[[:space:]]*$$//' {} \;
+	@echo "✅ 代码格式化完成"
 
 format-check:
 	@echo "🔍 检查代码格式..."
@@ -141,7 +169,7 @@ build: clean
 		python -m build; \
 	else \
 		echo "📥 安装build工具..."; \
-		pip install build; \
+		pip install -i https://mirrors.aliyun.com/pypi/simple/ build; \
 		python -m build; \
 	fi
 
@@ -151,7 +179,7 @@ check-build: build
 		python -m twine check dist/*; \
 	else \
 		echo "📥 安装twine..."; \
-		pip install twine; \
+		pip install -i https://mirrors.aliyun.com/pypi/simple/ twine; \
 		python -m twine check dist/*; \
 	fi
 
@@ -195,7 +223,7 @@ setup-dev: dev-install
 # 版本管理
 version:
 	@echo "📋 当前版本信息:"
-	@python -c "from src.mcp_mermaid._version import __version__; print(f'版本: {__version__}')"
+	@python -m setuptools_scm
 
 # 快速验证
 verify: install

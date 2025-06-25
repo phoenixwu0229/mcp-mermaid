@@ -1,132 +1,86 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = ["setuptools>=64", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "mcp-mermaid"
-version = "1.0.0"
-description = "智能Mermaid图表生成工具，支持布局优化、主题系统和高质量输出的MCP服务器"
+description = "MCP Server for generating Mermaid diagrams with built-in features"
 readme = "README.md"
-license = {text = "MIT"}
+requires-python = ">=3.8"
+license = "MIT"
 authors = [
-    {name = "MCP-Mermaid Team", email = "dev@mcp-mermaid.com"}
+    {name = "Your Name", email = "your.email@example.com"}
 ]
-maintainers = [
-    {name = "MCP-Mermaid Team", email = "dev@mcp-mermaid.com"}
-]
-keywords = ["mcp", "mermaid", "diagram", "visualization", "charts", "model-context-protocol"]
+keywords = ["mcp", "mermaid", "diagrams", "charts"]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Topic :: Software Development :: Libraries :: Python Modules",
-    "Topic :: Scientific/Engineering :: Visualization",
-    "Topic :: Text Processing :: Markup",
 ]
-requires-python = ">=3.8"
+dynamic = ["version"]
 dependencies = [
-    "requests>=2.25.0",
+    "httpx",
+    "mcp",
+    "Pillow",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=6.0",
-    "pytest-asyncio>=0.18.0",
-    "black>=21.0",
-    "flake8>=3.8.0",
-    "mypy>=0.800",
-    "build>=0.8.0",
-    "twine>=4.0.0",
+    "pytest",
+    "pytest-asyncio",
+    "black",
+    "isort",
+    "flake8",
+    "mypy",
 ]
 test = [
-    "pytest>=6.0",
-    "pytest-asyncio>=0.18.0",
-    "pytest-cov>=2.0",
-]
-docker = [
-    "gunicorn>=20.0.0",
+    "pytest",
+    "pytest-asyncio",
+    "pytest-cov",
 ]
 
 [project.urls]
-Homepage = "https://github.com/mcp-mermaid/mcp-mermaid"
-Documentation = "https://github.com/mcp-mermaid/mcp-mermaid/blob/main/README.md"
-Repository = "https://github.com/mcp-mermaid/mcp-mermaid.git"
-"Bug Reports" = "https://github.com/mcp-mermaid/mcp-mermaid/issues"
-Changelog = "https://github.com/mcp-mermaid/mcp-mermaid/blob/main/CHANGELOG.md"
+"Homepage" = "https://github.com/your-username/mcp-mermaid"
+"Bug Reports" = "https://github.com/your-username/mcp-mermaid/issues"
+"Source" = "https://github.com/your-username/mcp-mermaid"
 
 [project.scripts]
-mcp-mermaid = "mcp_mermaid.server:main_sync"
+mcp-mermaid = "mcp_mermaid.server:main"
 
-[tool.setuptools]
-package-dir = {"" = "src"}
+[tool.setuptools_scm]
+# Git tags 和 commits 自动版本
+write_to = "src/mcp_mermaid/_version.py"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["mcp_mermaid*"]
 
 [tool.setuptools.package-data]
-mcp_mermaid = ["*.json", "*.md"]
+"mcp_mermaid" = ["*.js", "*.json"]
 
-# 测试配置
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-python_files = ["test_*.py"]
-python_classes = ["Test*"]
-python_functions = ["test_*"]
-pythonpath = ["src"]
-addopts = [
-    "--verbose",
-    "--tb=short",
-    "--strict-markers",
-]
-markers = [
-    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-    "integration: marks tests as integration tests",
-]
-
-# 代码格式化配置
 [tool.black]
 line-length = 88
 target-version = ['py38']
-include = '\.pyi?$'
-exclude = '''
-/(
-    \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | _build
-  | buck-out
-  | build
-  | dist
-)/
-'''
 
-# 类型检查配置
+[tool.isort]
+profile = "black"
+src_paths = ["src", "tests"]
+
 [tool.mypy]
 python_version = "3.8"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
-disallow_incomplete_defs = true
-check_untyped_defs = true
-disallow_untyped_decorators = true
-no_implicit_optional = true
-warn_redundant_casts = true
-warn_unused_ignores = true
-warn_no_return = true
-warn_unreachable = true
-strict_equality = true
 
-[[tool.mypy.overrides]]
-module = "tests.*"
-disallow_untyped_defs = false 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+asyncio_mode = "auto" 

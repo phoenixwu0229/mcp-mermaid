@@ -5,15 +5,15 @@ Mermaid生成器主模块
 """
 
 import json
+import os
 import subprocess
 import tempfile
-import os
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
+from ..themes.configs import ThemeManager
+from .logger import logger
 from .optimizer import LayoutOptimizer
 from .uploader import ImageUploader
-from .logger import logger
-from ..themes.configs import ThemeManager
 
 
 class MermaidGenerator:
@@ -64,8 +64,7 @@ class MermaidGenerator:
             # 1. 布局优化
             if optimize_layout:
                 optimized_content, optimization_reason = self.optimizer.optimize_layout(
-                    content
-                )
+                    content)
                 result["optimized_content"] = optimized_content
                 result["layout_optimization"] = optimization_reason
                 logger.info("🎯 布局优化完成: %s", optimization_reason)
@@ -98,10 +97,10 @@ class MermaidGenerator:
                 image_url = self.uploader.upload_image(image_path, title)
                 if image_url:
                     result["image_url"] = image_url
-                    result["image_path"] = image_url  # 上传成功时，image_path设置为云端URL
+                    # 上传成功时，image_path设置为云端URL
+                    result["image_path"] = image_url
                     result["markdown_link"] = self.uploader.generate_markdown_link(
-                        image_url, title
-                    )
+                        image_url, title)
                     logger.info("☁️ 图片上传成功: %s", image_url)
                 else:
                     logger.warning("⚠️ 图片上传失败，但本地图片生成成功")
@@ -144,8 +143,10 @@ class MermaidGenerator:
             mcp_mermaid_dir = os.path.dirname(current_dir)  # mcp_mermaid目录
             src_dir = os.path.dirname(mcp_mermaid_dir)  # src目录
             project_root = os.path.dirname(src_dir)  # 项目根目录
-            puppeteer_script = os.path.join(project_root, "js", "puppeteer-screenshot.js")
-            
+            puppeteer_script = os.path.join(
+                project_root, "js", "puppeteer-screenshot.js"
+            )
+
             cmd = [
                 "node",
                 puppeteer_script,
@@ -162,7 +163,8 @@ class MermaidGenerator:
             logger.info("🔧 生成命令: %s", " ".join(cmd))
 
             # 执行命令
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, timeout=30)
 
             if result.returncode == 0 and os.path.exists(output_path):
                 return output_path
@@ -183,8 +185,10 @@ class MermaidGenerator:
         self, mermaid_content: str, theme_config: Dict[str, Any]
     ) -> str:
         """创建用于生成图片的HTML文件"""
-        bg_color = theme_config.get("themeVariables", {}).get("background", "#FFFFFF")
-        
+        bg_color = theme_config.get(
+            "themeVariables", {}).get(
+            "background", "#FFFFFF")
+
         # 使用本地下载的Mermaid.js文件
         current_dir = os.path.dirname(__file__)  # core目录
         mcp_mermaid_dir = os.path.dirname(current_dir)  # mcp_mermaid目录
@@ -192,9 +196,7 @@ class MermaidGenerator:
         project_root = os.path.dirname(src_dir)  # 项目根目录
         mermaid_js_path = os.path.join(project_root, "js", "mermaid.min.js")
         mermaid_js_url = f"file://{os.path.abspath(mermaid_js_path)}"
-        
 
-        
         html_template = f"""
 <!DOCTYPE html>
 <html lang="en">
@@ -208,7 +210,9 @@ class MermaidGenerator:
             margin: 0;
             padding: 20px;
             background-color: {bg_color};
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Noto Color Emoji", sans-serif;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont,
+                "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans",
+                "Noto Color Emoji", sans-serif;
             font-variant-emoji: emoji;
             font-synthesis: none;
         }}
@@ -242,12 +246,14 @@ class MermaidGenerator:
             mermaid.initialize({{
                 startOnLoad: true,
                 {json.dumps(theme_config)[1:-1]},
-                fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Noto Color Emoji", sans-serif',
+                fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, ' +
+                    '"Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", ' +
+                    '"Noto Color Emoji", sans-serif',
                 fontSize: 14,
                 wrap: true,
                 useMaxWidth: true
             }});
-            
+
             // 添加渲染完成检测
             const observer = new MutationObserver(function(mutations) {{
                 mutations.forEach(function(mutation) {{
@@ -261,10 +267,11 @@ class MermaidGenerator:
                     }}
                 }});
             }});
-            
+
             const mermaidContainer = document.querySelector('.mermaid');
             if (mermaidContainer) {{
-                observer.observe(mermaidContainer, {{ childList: true, subtree: true }});
+                observer.observe(mermaidContainer, {{
+                    childList: true, subtree: true }});
             }}
         }});
     </script>
@@ -274,7 +281,7 @@ class MermaidGenerator:
 
         # 创建临时HTML文件
         html_file = os.path.join(self.temp_dir, "diagram.html")
-        with open(html_file, "w", encoding="utf-8", errors='replace') as f:
+        with open(html_file, "w", encoding="utf-8", errors="replace") as f:
             f.write(html_template)
 
         return html_file
@@ -296,17 +303,17 @@ class MermaidGenerator:
         """获取布局优化器统计信息"""
         return self.optimizer.get_layout_stats()
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         """清理临时文件"""
         try:
             import shutil
 
-            if hasattr(self, 'temp_dir') and os.path.exists(self.temp_dir):
+            if hasattr(self, "temp_dir") and os.path.exists(self.temp_dir):
                 shutil.rmtree(self.temp_dir)
                 logger.info("🧹 清理临时目录: %s", self.temp_dir)
         except Exception as e:
             logger.warning("⚠️ 清理临时文件失败: %s", e)
 
-    def __del__(self):
+    def __del__(self) -> None:
         """析构函数，自动清理"""
         self.cleanup()
