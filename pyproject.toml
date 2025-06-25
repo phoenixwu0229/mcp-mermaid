@@ -2,9 +2,12 @@
 requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools.dynamic]
+version = {attr = "mcp_mermaid._version.__version__"}
+
 [project]
 name = "mcp-mermaid"
-version = "1.0.0"
+dynamic = ["version"]
 description = "智能Mermaid图表生成工具，支持布局优化、主题系统和高质量输出的MCP服务器"
 readme = "README.md"
 license = {text = "MIT"}
@@ -18,7 +21,6 @@ keywords = ["mcp", "mermaid", "diagram", "visualization", "charts", "model-conte
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
@@ -42,6 +44,7 @@ dev = [
     "black>=21.0",
     "flake8>=3.8.0",
     "mypy>=0.800",
+    "types-requests>=2.25.0",
     "build>=0.8.0",
     "twine>=4.0.0",
 ]
@@ -90,6 +93,8 @@ markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",
 ]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 
 # 代码格式化配置
 [tool.black]

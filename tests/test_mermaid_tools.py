@@ -4,8 +4,9 @@
 包含工具列表获取、工具调用、参数验证、错误处理等功能测试
 """
 
-import pytest
 from unittest.mock import patch
+
+import pytest
 
 from mcp_mermaid.tools.mermaid_tools import MermaidTools
 
@@ -36,13 +37,12 @@ class TestMermaidTools:
         tool_list = tools.get_tools()
 
         assert isinstance(tool_list, list)
-        assert len(tool_list) == 3  # 应该有3个工具
+        assert len(tool_list) == 1  # 简化为1个综合工具
 
         # 验证工具名称
         tool_names = [tool["name"] for tool in tool_list]
         assert "generate_diagram" in tool_names
-        assert "optimize_layout" in tool_names
-        assert "get_theme_info" in tool_names
+        # 注意：optimize_layout和get_theme_info功能已内置到generate_diagram中
 
     def test_generate_diagram_tool_schema(self, tools):
         """测试generate_diagram工具的schema"""
@@ -69,34 +69,32 @@ class TestMermaidTools:
         assert "upload_image" in properties
         assert "title" in properties
 
-    def test_optimize_layout_tool_schema(self, tools):
-        """测试optimize_layout工具的schema"""
+    def test_generate_diagram_has_optimization_features(self, tools):
+        """测试generate_diagram工具包含优化功能"""
         tool_list = tools.get_tools()
-        optimize_tool = next(
-            tool for tool in tool_list if tool["name"] == "optimize_layout"
+        generate_tool = next(
+            tool for tool in tool_list if tool["name"] == "generate_diagram"
         )
 
-        assert "description" in optimize_tool
-        assert "inputSchema" in optimize_tool
+        # 验证包含布局优化功能
+        properties = generate_tool["inputSchema"]["properties"]
+        assert "optimize_layout" in properties
+        assert properties["optimize_layout"]["type"] == "boolean"
+        assert properties["optimize_layout"]["default"] is True
 
-        schema = optimize_tool["inputSchema"]
-        assert schema["type"] == "object"
-        assert "content" in schema["required"]
-        assert "content" in schema["properties"]
-
-    def test_get_theme_info_tool_schema(self, tools):
-        """测试get_theme_info工具的schema"""
+    def test_generate_diagram_has_theme_features(self, tools):
+        """测试generate_diagram工具包含主题功能"""
         tool_list = tools.get_tools()
-        theme_tool = next(
-            tool for tool in tool_list if tool["name"] == "get_theme_info"
+        generate_tool = next(
+            tool for tool in tool_list if tool["name"] == "generate_diagram"
         )
 
-        assert "description" in theme_tool
-        assert "inputSchema" in theme_tool
-
-        schema = theme_tool["inputSchema"]
-        assert schema["type"] == "object"
-        assert schema["required"] == []  # 不需要参数
+        # 验证包含主题选择功能
+        properties = generate_tool["inputSchema"]["properties"]
+        assert "theme" in properties
+        assert properties["theme"]["type"] == "string"
+        assert "enum" in properties["theme"]
+        assert properties["theme"]["default"] == "default"
 
     def test_call_generate_diagram_success(self, tools, sample_content):
         """测试成功调用generate_diagram"""
@@ -112,8 +110,8 @@ class TestMermaidTools:
             mock_generate.return_value = mock_result
 
             result = tools.call_tool(
-                "generate_diagram", {"content": sample_content, "theme": "default"}
-            )
+                "generate_diagram", {
+                    "content": sample_content, "theme": "default"})
 
             assert result["success"] is True
             assert result["message"] == "图表生成成功"
@@ -126,7 +124,7 @@ class TestMermaidTools:
                 theme="default",
                 optimize_layout=True,  # 默认值
                 quality="high",  # 默认值
-                upload_image=False,  # 默认值
+                upload_image=True,  # 默认值已改为True
                 title="",  # 默认值
             )
 
@@ -169,82 +167,56 @@ class TestMermaidTools:
         with patch.object(tools.generator, "generate_diagram") as mock_generate:
             mock_generate.return_value = mock_result
 
-            result = tools.call_tool("generate_diagram", {"content": sample_content})
+            result = tools.call_tool(
+                "generate_diagram", {
+                    "content": sample_content})
 
             assert result["success"] is False
             assert result["error"] == "图片生成失败"
             assert "details" in result
 
-    def test_call_optimize_layout_success(self, tools, sample_content):
-        """测试成功调用optimize_layout"""
-        optimized_content = sample_content.replace("TD", "LR")
+    def test_generate_diagram_includes_optimization_info(
+            self, tools, sample_content):
+        """测试generate_diagram包含优化信息"""
+        mock_result = {
+            "success": True,
+            "theme": "default",
+            "layout_optimization": "优化为横向布局",
+            "optimized_content": sample_content.replace("TD", "LR"),
+            "image_path": "/tmp/test.png",
+        }
 
-        with patch.object(
-            tools.generator.optimizer, "optimize_layout"
-        ) as mock_optimize:
-            mock_optimize.return_value = (optimized_content, "优化为横向布局")
+        with patch.object(tools.generator, "generate_diagram") as mock_generate:
+            mock_generate.return_value = mock_result
 
-            result = tools.call_tool("optimize_layout", {"content": sample_content})
-
-            assert result["success"] is True
-            assert result["message"] == "布局优化完成"
-            assert result["data"]["original_content"] == sample_content
-            assert result["data"]["optimized_content"] == optimized_content
-            assert result["data"]["optimization_reason"] == "优化为横向布局"
-            assert result["data"]["was_optimized"] is True
-
-    def test_call_optimize_layout_no_change(self, tools, sample_content):
-        """测试optimize_layout无变化"""
-        with patch.object(
-            tools.generator.optimizer, "optimize_layout"
-        ) as mock_optimize:
-            mock_optimize.return_value = (sample_content, "保持默认布局")
-
-            result = tools.call_tool("optimize_layout", {"content": sample_content})
+            result = tools.call_tool(
+                "generate_diagram", {
+                    "content": sample_content, "optimize_layout": True})
 
             assert result["success"] is True
-            assert result["data"]["was_optimized"] is False
+            assert "optimization_details" in result["data"]
+            assert result["data"]["layout_optimization"] == "优化为横向布局"
 
-    def test_call_optimize_layout_exception(self, tools, sample_content):
-        """测试optimize_layout异常处理"""
-        with patch.object(
-            tools.generator.optimizer, "optimize_layout"
-        ) as mock_optimize:
-            mock_optimize.side_effect = Exception("优化异常")
+    def test_generate_diagram_includes_theme_info(self, tools, sample_content):
+        """测试generate_diagram包含主题信息"""
+        mock_result = {
+            "success": True,
+            "theme": "professional",
+            "layout_optimization": "保持默认布局",
+            "optimized_content": sample_content,
+            "image_path": "/tmp/test.png",
+        }
 
-            result = tools.call_tool("optimize_layout", {"content": sample_content})
+        with patch.object(tools.generator, "generate_diagram") as mock_generate:
+            mock_generate.return_value = mock_result
 
-            assert result["success"] is False
-            assert "优化异常" in result["error"]
-
-    def test_call_get_theme_info_success(self, tools):
-        """测试成功调用get_theme_info"""
-        mock_themes = {"default": "默认主题", "professional": "专业主题"}
-
-        with patch(
-            "mcp_mermaid.themes.configs.ThemeManager.get_theme_info"
-        ) as mock_get_themes:
-            mock_get_themes.return_value = mock_themes
-
-            result = tools.call_tool("get_theme_info", {})
+            result = tools.call_tool(
+                "generate_diagram", {
+                    "content": sample_content, "theme": "professional"})
 
             assert result["success"] is True
-            assert result["message"] == "主题信息获取成功"
-            assert result["data"]["available_themes"] == mock_themes
-            assert result["data"]["total_count"] == 2
-            assert result["data"]["default_theme"] == "default"
-
-    def test_call_get_theme_info_exception(self, tools):
-        """测试get_theme_info异常处理"""
-        with patch(
-            "mcp_mermaid.themes.configs.ThemeManager.get_theme_info"
-        ) as mock_get_themes:
-            mock_get_themes.side_effect = Exception("主题获取异常")
-
-            result = tools.call_tool("get_theme_info", {})
-
-            assert result["success"] is False
-            assert "主题获取异常" in result["error"]
+            assert "available_themes" in result["data"]
+            assert result["data"]["theme"] == "professional"
 
     def test_call_unknown_tool(self, tools):
         """测试调用未知工具"""
@@ -259,7 +231,9 @@ class TestMermaidTools:
         with patch.object(tools.generator, "generate_diagram") as mock_generate:
             mock_generate.side_effect = Exception("生成异常")
 
-            result = tools.call_tool("generate_diagram", {"content": sample_content})
+            result = tools.call_tool(
+                "generate_diagram", {
+                    "content": sample_content})
 
             assert result["success"] is False
             assert "生成过程异常" in result["error"]
@@ -279,7 +253,7 @@ class TestMermaidTools:
             assert "optimizer_stats" in stats
             assert "available_themes" in stats
             assert "tools_count" in stats
-            assert stats["tools_count"] == 3
+            assert stats["tools_count"] == 1
 
     def test_cleanup(self, tools):
         """测试资源清理"""
@@ -322,4 +296,3 @@ class TestMermaidTools:
                 upload_image=True,
                 title="完整测试",
             )
- 

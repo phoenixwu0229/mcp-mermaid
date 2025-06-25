@@ -4,10 +4,11 @@
 包含图片上传、Markdown链接生成、错误处理等功能测试
 """
 
-import pytest
-import tempfile
 import os
-from unittest.mock import patch, MagicMock
+import tempfile
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 from mcp_mermaid.core.uploader import ImageUploader
 
@@ -149,7 +150,8 @@ class TestImageUploader:
         assert call_args[1]["data"]["name"] == "mermaid_diagram"
 
     @patch("mcp_mermaid.core.uploader.requests.post")
-    def test_upload_and_get_markdown_success(self, mock_post, uploader, temp_image):
+    def test_upload_and_get_markdown_success(
+            self, mock_post, uploader, temp_image):
         """测试上传并获取Markdown链接成功"""
         mock_response = MagicMock()
         mock_response.status_code = 200
@@ -164,7 +166,8 @@ class TestImageUploader:
         assert result == "![测试标题](https://example.com/uploaded.png)"
 
     @patch("mcp_mermaid.core.uploader.requests.post")
-    def test_upload_and_get_markdown_failure(self, mock_post, uploader, temp_image):
+    def test_upload_and_get_markdown_failure(
+            self, mock_post, uploader, temp_image):
         """测试上传失败时获取Markdown链接"""
         mock_response = MagicMock()
         mock_response.status_code = 500
@@ -211,4 +214,3 @@ class TestImageUploader:
                 os.unlink(temp_image)
         except Exception:
             pass
- 

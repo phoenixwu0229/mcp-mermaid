@@ -5,25 +5,31 @@
 """
 
 import re
-from typing import Tuple, Dict, Any
+from typing import Any, Dict, Tuple
+
 from .logger import logger
 
 
 class LayoutOptimizer:
     """智能布局优化器"""
 
-    def __init__(self):
-        self.analysis_cache = {}
+    def __init__(self) -> None:
+        self.analysis_cache: Dict[int, Dict[str, Any]] = {}
 
     def analyze_content(self, mermaid_content: str) -> Dict[str, Any]:
         """分析Mermaid内容结构"""
         # 使用内容哈希做缓存
         content_hash = hash(mermaid_content)
         if content_hash in self.analysis_cache:
-            return self.analysis_cache[content_hash]
+            cached_result: Dict[str, Any] = self.analysis_cache[content_hash]
+            return cached_result
 
         # 检测子图数量
-        subgraph_count = len(re.findall(r"subgraph\s+", mermaid_content, re.IGNORECASE))
+        subgraph_count = len(
+            re.findall(
+                r"subgraph\s+",
+                mermaid_content,
+                re.IGNORECASE))
 
         # 统计节点数量（改进算法）
         node_patterns = [
@@ -72,7 +78,10 @@ class LayoutOptimizer:
 
         logger.info(
             "布局分析: 节点数=%d, 连接数=%d, 子图数=%d, 密度=%.2f",
-            analysis['nodes'], analysis['connections'], analysis['subgraphs'], analysis['density']
+            analysis["nodes"],
+            analysis["connections"],
+            analysis["subgraphs"],
+            analysis["density"],
         )
 
         # 布局优化规则
@@ -85,7 +94,10 @@ class LayoutOptimizer:
         elif analysis["nodes"] >= 4 and analysis["density"] <= 1.3:
             # 线性流程优化：转为横向布局
             optimized = self._convert_to_horizontal(mermaid_content)
-            reason = f"线性流程结构 (节点:{analysis['nodes']}, 边/节点比:{analysis['density']:.2f})"
+            reason = (
+                f"线性流程结构 (节点:{analysis['nodes']}, "
+                f"边/节点比:{analysis['density']:.2f})"
+            )
             logger.info("优化为横向布局: %s", reason)
             return optimized, reason
 
@@ -114,6 +126,6 @@ class LayoutOptimizer:
             "total_analyzed": len(self.analysis_cache),
         }
 
-    def clear_cache(self):
+    def clear_cache(self) -> None:
         """清空缓存"""
         self.analysis_cache.clear()

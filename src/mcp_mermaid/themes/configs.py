@@ -4,7 +4,7 @@
 管理5种专业主题的配置和应用
 """
 
-from typing import Dict, Any
+from typing import Any, Dict, List
 
 
 class ThemeManager:
@@ -84,7 +84,7 @@ class ThemeManager:
         return cls.THEMES.get(theme_name, cls.THEMES["default"])
 
     @classmethod
-    def get_available_themes(cls) -> list:
+    def get_available_themes(cls) -> List[str]:
         """获取所有可用主题列表"""
         return list(cls.THEMES.keys())
 
