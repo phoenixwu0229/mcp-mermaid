@@ -241,9 +241,12 @@ class TestMermaidTools:
 
     def test_get_stats(self, tools):
         """测试获取统计信息"""
-        with patch.object(tools.generator, "get_optimizer_stats") as mock_stats, patch(
-            "mcp_mermaid.themes.configs.ThemeManager.get_available_themes"
-        ) as mock_themes:
+        with (
+            patch.object(tools.generator, "get_optimizer_stats") as mock_stats,
+            patch(
+                "mcp_mermaid.themes.configs.ThemeManager.get_available_themes"
+            ) as mock_themes,
+        ):
 
             mock_stats.return_value = {"optimizations": 5}
             mock_themes.return_value = ["default", "professional"]

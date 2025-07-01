@@ -106,9 +106,10 @@ class TestMermaidGenerator:
 
     def test_generate_diagram_with_upload(self, generator, sample_content):
         """测试带上传功能的图表生成"""
-        with patch.object(generator, "_generate_image") as mock_generate, patch.object(
-            generator.uploader, "upload_image"
-        ) as mock_upload:
+        with (
+            patch.object(generator, "_generate_image") as mock_generate,
+            patch.object(generator.uploader, "upload_image") as mock_upload,
+        ):
 
             mock_generate.return_value = "/tmp/test.png"
             mock_upload.return_value = "https://example.com/image.png"
@@ -169,9 +170,10 @@ class TestMermaidGenerator:
 
     def test_upload_failure_handling(self, generator, sample_content):
         """测试上传失败处理"""
-        with patch.object(generator, "_generate_image") as mock_generate, patch.object(
-            generator.uploader, "upload_image"
-        ) as mock_upload:
+        with (
+            patch.object(generator, "_generate_image") as mock_generate,
+            patch.object(generator.uploader, "upload_image") as mock_upload,
+        ):
 
             mock_generate.return_value = "/tmp/test.png"
             mock_upload.return_value = None  # 模拟上传失败
