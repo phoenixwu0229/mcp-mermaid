@@ -14,6 +14,7 @@ from ..themes.configs import ThemeManager
 from .logger import logger
 from .optimizer import LayoutOptimizer
 from .uploader import ImageUploader
+from .font_checker import FontChecker
 
 
 class MermaidGenerator:
@@ -24,6 +25,9 @@ class MermaidGenerator:
         self.uploader = ImageUploader()
         self.puppeteer_config_path = puppeteer_config_path
         self.temp_dir = tempfile.mkdtemp()
+        
+        # 首次运行时检测系统字体
+        self._check_system_fonts()
 
     def generate_diagram(
         self,
@@ -138,14 +142,18 @@ class MermaidGenerator:
             quality_settings = self._get_quality_settings(quality)
 
             # 使用自定义Puppeteer脚本生成图片
-            # 从当前文件位置计算项目根目录
-            current_dir = os.path.dirname(__file__)  # core目录
-            mcp_mermaid_dir = os.path.dirname(current_dir)  # mcp_mermaid目录
-            src_dir = os.path.dirname(mcp_mermaid_dir)  # src目录
-            project_root = os.path.dirname(src_dir)  # 项目根目录
-            puppeteer_script = os.path.join(
-                project_root, "js", "puppeteer-screenshot.js"
-            )
+            # 从包内资源定位JS文件
+            try:
+                from importlib import resources
+                # Python 3.9+
+                js_dir = resources.files('mcp_mermaid').joinpath('js')
+                puppeteer_script = str(js_dir.joinpath('puppeteer-screenshot.js'))
+            except (ImportError, AttributeError):
+                # Python 3.8 fallback
+                import pkg_resources
+                puppeteer_script = pkg_resources.resource_filename(
+                    'mcp_mermaid', 'js/puppeteer-screenshot.js'
+                )
 
             cmd = [
                 "node",
@@ -190,11 +198,17 @@ class MermaidGenerator:
             "background", "#FFFFFF")
 
         # 使用本地下载的Mermaid.js文件
-        current_dir = os.path.dirname(__file__)  # core目录
-        mcp_mermaid_dir = os.path.dirname(current_dir)  # mcp_mermaid目录
-        src_dir = os.path.dirname(mcp_mermaid_dir)  # src目录
-        project_root = os.path.dirname(src_dir)  # 项目根目录
-        mermaid_js_path = os.path.join(project_root, "js", "mermaid.min.js")
+        try:
+            from importlib import resources
+            # Python 3.9+
+            js_dir = resources.files('mcp_mermaid').joinpath('js')
+            mermaid_js_path = str(js_dir.joinpath('mermaid.min.js'))
+        except (ImportError, AttributeError):
+            # Python 3.8 fallback
+            import pkg_resources
+            mermaid_js_path = pkg_resources.resource_filename(
+                'mcp_mermaid', 'js/mermaid.min.js'
+            )
         mermaid_js_url = f"file://{os.path.abspath(mermaid_js_path)}"
 
         html_template = f"""
@@ -313,6 +327,14 @@ class MermaidGenerator:
                 logger.info("🧹 清理临时目录: %s", self.temp_dir)
         except Exception as e:
             logger.warning("⚠️ 清理临时文件失败: %s", e)
+
+    def _check_system_fonts(self) -> None:
+        """检测系统字体（仅在首次运行时）"""
+        # 使用环境变量避免重复检测
+        if os.environ.get("MCP_MERMAID_FONT_CHECKED") != "1":
+            FontChecker.check_and_warn()
+            # 设置环境变量，避免同一进程内重复检测
+            os.environ["MCP_MERMAID_FONT_CHECKED"] = "1"
 
     def __del__(self) -> None:
         """析构函数，自动清理"""

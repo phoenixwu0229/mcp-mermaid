@@ -59,7 +59,7 @@ where = ["src"]
 include = ["mcp_mermaid*"]
 
 [tool.setuptools.package-data]
-"mcp_mermaid" = ["*.js", "*.json"]
+"mcp_mermaid" = ["js/*.js", "js/*.json", "js/package*.json"]
 
 [tool.black]
 line-length = 88
